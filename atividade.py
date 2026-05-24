@@ -2,7 +2,6 @@ from datetime import datetime
 import time
 
 LIMITE_EMPRESTIMOS = 3
-
 VALIDADE_SEGUNDOS = 300
 
 #1 - Login
@@ -94,18 +93,18 @@ def biblioteca_devolver(acervo, emprestimos, aluno, titulo):
 
 #5 - Agenda
 
-def agenda(compromissos, data_str, horario_str, descricao):
+def agenda(compromissos, data, horario, descricao):
     try:
-        datetime.strptime(data_str, "%d/%m/%Y")
+        datetime.strptime(data, "%d/%m/%Y")
     except ValueError:
         return "Data inválida"
 
     try:
-        datetime.strptime(horario_str, "%H:%M")
+        datetime.strptime(horario, "%H:%M")
     except ValueError:
         return "Horário inválido"
 
-    chave = (data_str, horario_str)
+    chave = (data, horario)
     if chave in compromissos:
         return "Já existe um compromisso nesse horário"
 

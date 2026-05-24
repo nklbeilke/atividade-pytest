@@ -10,6 +10,7 @@ from atividade import banco_criar_conta, banco
 from atividade import matricula_criar_turma, matricula
 import pytest
 
+#1 - Login
 
 def test_login_sucesso():
     assert login("Nicolas", "0511") == "Login realizado com sucesso"
@@ -29,6 +30,7 @@ def test_login_usuario_vazio():
 def test_login_senha_vazia():
     assert login("Nicolas", "") == "Algum campo obrigatório está vazio"
 
+#2 - Cadastro
 
 def test_cadastro_sucesso():
     assert cadastro("Nicolas", "12345678901", "nicolas@gmail.com", "41999999999") == "Cadastro realizado com sucesso"
@@ -48,6 +50,7 @@ def test_cadastro_email_invalido():
 def test_cadastro_telefone_vazio():
     assert cadastro("Nicolas", "12345678901", "nicolas@gmail.com", "") == "Campo telefone está em branco"
 
+#3 - Carrinho
 
 def test_carrinho_adicionar_produto():
     c = {}
@@ -85,6 +88,7 @@ def test_carrinho_total_vazio():
     c = {}
     assert carrinho_total(c) == 0.0
 
+#4 - Biblioteca
 
 def test_biblioteca_emprestimo_sucesso():
     acervo = {}
@@ -121,6 +125,7 @@ def test_biblioteca_estoque_atualiza_apos_emprestimo():
     biblioteca_emprestar(acervo, emprestimos, "Nicolas", "Dom Casmurro")
     assert acervo["Dom Casmurro"] == 1
 
+#5 - Agenda
 
 def test_agenda_cadastro_sucesso():
     compromissos = {}
@@ -144,6 +149,7 @@ def test_agenda_mesmo_horario_dia_diferente():
     agenda(compromissos, "25/12/2025", "10:00", "Reunião")
     assert agenda(compromissos, "26/12/2025", "10:00", "Consulta") == "Compromisso cadastrado com sucesso"
 
+#6 - Senha Rec.
 
 def test_senha_rec_envio_sucesso():
     codigos = {}
@@ -169,6 +175,7 @@ def test_senha_rec_codigo_expirado():
     tempo_futuro = codigos["nicolas@gmail.com"]["timestamp"] + 360
     assert senha_rec_validar(codigos, "nicolas@gmail.com", "123456", tempo_atual=tempo_futuro) == "Código expirado"
 
+#7 - Calcular media
 
 def test_notas_media_normal():
     assert notas([7.0, 8.0, 6.0, 9.0]) == 7.5
@@ -188,6 +195,7 @@ def test_notas_lista_vazia():
 def test_notas_fora_do_intervalo():
     assert notas([7.0, 11.0]) == "Nota fora do intervalo permitido"
 
+#8 - Almoxarifado
 
 def test_almoxarifado_entrada():
     estoque = {}
@@ -218,6 +226,7 @@ def test_almoxarifado_estoque_zerado():
     estoque = {}
     assert almoxarifado_saldo(estoque, "Produto X") == 0
 
+#9 - Banco
 
 def test_banco_transferencia_sucesso():
     contas = {}
@@ -250,6 +259,7 @@ def test_banco_mesma_conta():
     banco_criar_conta(contas, "Nicolas", 500)
     assert banco(contas, "Nicolas", "Nicolas", 100) == "Transferência para a mesma conta não permitida"
 
+#10 - Matricula
 
 def test_matricula_sucesso():
     turmas = {}
@@ -261,7 +271,6 @@ def test_matricula_turma_lotada():
     matricula_criar_turma(turmas, "T1", "Informática", 1)
     matricula(turmas, "Nicolas", "T1")
     assert matricula(turmas, "Vinicios", "T1") == "Turma lotada"
-
 
 def test_matricula_turma_inexistente():
     turmas = {}
