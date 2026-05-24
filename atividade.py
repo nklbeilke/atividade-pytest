@@ -1,4 +1,11 @@
 from datetime import datetime
+import time
+
+LIMITE_EMPRESTIMOS = 3
+
+VALIDADE_SEGUNDOS = 300
+
+#1 - Login
 
 def login(usuario, senha):
     usuarios = {
@@ -16,8 +23,9 @@ def login(usuario, senha):
 
     return "Login realizado com sucesso"
 
-def cadastrar_cliente(nome, cpf, email, telefone):
+#2 - Cadastro
 
+def cadastro(nome, cpf, email, telefone):
     if not nome:
         return "Nome obrigatório"
 
@@ -32,178 +40,158 @@ def cadastrar_cliente(nome, cpf, email, telefone):
 
     return "Cadastro realizado com sucesso"
 
-class carrinho:
-    def __init__(self):
-        self.itens = {}  
+#3 - Carrinho
 
-    def adicionar(self, produto, preco, quantidade=1):
-        if quantidade <= 0:
-            return "Quantidade inválida"
-        if produto in self.itens:
-            self.itens[produto]["quantidade"] += quantidade
-        else:
-            self.itens[produto] = {"preco": preco, "quantidade": quantidade}
-        return "Produto adicionado"
+def carrinho_adicionar(carrinho, produto, preco, quantidade=1):
+    if quantidade <= 0:
+        return "Quantidade inválida"
+    if produto in carrinho:
+        carrinho[produto]["quantidade"] += quantidade
+    else:
+        carrinho[produto] = {"preco": preco, "quantidade": quantidade}
+    return "Produto adicionado"
 
-    def remover(self, produto):
-        if produto not in self.itens:
-            return "Produto não encontrado"
-        del self.itens[produto]
-        return "Produto removido"
+def carrinho_remover(carrinho, produto):
+    if produto not in carrinho:
+        return "Produto não encontrado"
+    del carrinho[produto]
+    return "Produto removido"
 
-    def alterar_quantidade(self, produto, nova_quantidade):
-        if produto not in self.itens:
-            return "Produto não encontrado"
-        if nova_quantidade <= 0:
-            return "Quantidade inválida"
-        self.itens[produto]["quantidade"] = nova_quantidade
-        return "Quantidade atualizada"
+def carrinho_alterar_quantidade(carrinho, produto, nova_quantidade):
+    if produto not in carrinho:
+        return "Produto não encontrado"
+    if nova_quantidade <= 0:
+        return "Quantidade inválida"
+    carrinho[produto]["quantidade"] = nova_quantidade
+    return "Quantidade atualizada"
 
-    def total(self):
-        return sum(item["preco"] * item["quantidade"] for item in self.itens.values())
+def carrinho_total(carrinho):
+    return sum(item["preco"] * item["quantidade"] for item in carrinho.values())
 
+#4 - Biblioteca
 
-class biblioteca:
-    LIMITE_EMPRESTIMOS = 3
+def biblioteca_adicionar_livro(acervo, titulo, quantidade):
+    acervo[titulo] = quantidade
 
-    def __init__(self):
-        self.acervo = {}
-        self.emprestimos = {}
+def biblioteca_emprestar(acervo, emprestimos, aluno, titulo):
+    if titulo not in acervo or acervo[titulo] == 0:
+        return "Livro indisponível"
+    emprestados = emprestimos.get(aluno, [])
+    if len(emprestados) >= LIMITE_EMPRESTIMOS:
+        return "Limite de empréstimos atingido"
+    acervo[titulo] -= 1
+    if aluno not in emprestimos:
+        emprestimos[aluno] = []
+    emprestimos[aluno].append(titulo)
+    return "Empréstimo realizado com sucesso"
 
-    def adicionar_livro(self, titulo, quantidade):
-        self.acervo[titulo] = quantidade
+def biblioteca_devolver(acervo, emprestimos, aluno, titulo):
+    if aluno not in emprestimos or titulo not in emprestimos[aluno]:
+        return "Empréstimo não encontrado"
+    emprestimos[aluno].remove(titulo)
+    acervo[titulo] += 1
+    return "Devolução realizada com sucesso"
 
-    def emprestar(self, aluno, titulo):
-        if titulo not in self.acervo or self.acervo[titulo] == 0:
-            return "Livro indisponível"
-        emprestados = self.emprestimos.get(aluno, [])
-        if len(emprestados) >= self.LIMITE_EMPRESTIMOS:
-            return "Limite de empréstimos atingido"
-        self.acervo[titulo] -= 1
-        self.emprestimos.setdefault(aluno, []).append(titulo)
-        return "Empréstimo realizado com sucesso"
+#5 - Agenda
 
-    def devolver(self, aluno, titulo):
-        if aluno not in self.emprestimos or titulo not in self.emprestimos[aluno]:
-            return "Empréstimo não encontrado"
-        self.emprestimos[aluno].remove(titulo)
-        self.acervo[titulo] += 1
-        return "Devolução realizada com sucesso"
+def agenda(compromissos, data_str, horario_str, descricao):
+    try:
+        datetime.strptime(data_str, "%d/%m/%Y")
+    except ValueError:
+        return "Data inválida"
 
-class agenda:
-    def __init__(self):
-        self.compromissos = {}
+    try:
+        datetime.strptime(horario_str, "%H:%M")
+    except ValueError:
+        return "Horário inválido"
 
-    def cadastrar(self, data_str, horario_str, descricao):
-        try:
-            data = datetime.strptime(data_str, "%d/%m/%Y")
-        except ValueError:
-            return "Data inválida"
+    chave = (data_str, horario_str)
+    if chave in compromissos:
+        return "Já existe um compromisso nesse horário"
 
-        try:
-            horario = datetime.strptime(horario_str, "%H:%M")
-        except ValueError:
-            return "Horário inválido"
+    compromissos[chave] = descricao
+    return "Compromisso cadastrado com sucesso"
 
-        chave = (data_str, horario_str)
-        if chave in self.compromissos:
-            return "Já existe um compromisso nesse horário"
+#6 - Senha Rec.
 
-        self.compromissos[chave] = descricao
-        return "Compromisso cadastrado com sucesso"
+def senha_rec_enviar(codigos, email, codigo):
+    if "@" not in email:
+        return "E-mail inválido"
+    codigos[email] = {"codigo": codigo, "timestamp": time.time()}
+    return "Código enviado com sucesso"
 
+def senha_rec_validar(codigos, email, codigo_informado, tempo_atual=None):
+    if email not in codigos:
+        return "Nenhum código enviado para este e-mail"
+    registro = codigos[email]
+    agora = tempo_atual if tempo_atual is not None else time.time()
+    if agora - registro["timestamp"] > VALIDADE_SEGUNDOS:
+        return "Código expirado"
+    if registro["codigo"] != codigo_informado:
+        return "Código inválido"
+    return "Código válido"
 
-import time
+#7 - Calcular media
 
-class recuperacao_senha:
-    VALIDADE_SEGUNDOS = 300
-
-    def __init__(self):
-        self.codigos = {}
-
-    def enviar_codigo(self, email, codigo):
-        if "@" not in email:
-            return "E-mail inválido"
-        self.codigos[email] = {"codigo": codigo, "timestamp": time.time()}
-        return "Código enviado com sucesso"
-
-    def validar_codigo(self, email, codigo_informado, tempo_atual=None):
-        if email not in self.codigos:
-            return "Nenhum código enviado para este e-mail"
-        registro = self.codigos[email]
-        agora = tempo_atual if tempo_atual is not None else time.time()
-        if agora - registro["timestamp"] > self.VALIDADE_SEGUNDOS:
-            return "Código expirado"
-        if registro["codigo"] != codigo_informado:
-            return "Código inválido"
-        return "Código válido"
-
-
-def calcular_media(notas):
-    if not notas:
+def notas(lista_notas):
+    if not lista_notas:
         return "Nenhuma nota informada"
-    for nota in notas:
+    for nota in lista_notas:
         if nota is None:
             return "Campo de nota não preenchido"
         if nota < 0 or nota > 10:
             return "Nota fora do intervalo permitido"
-    media = sum(notas) / len(notas)
+    media = sum(lista_notas) / len(lista_notas)
     return round(media, 2)
 
+#8 - Almoxarifado
 
-class almoxarifado:
-    def __init__(self):
-        self.estoque = {}
+def almoxarifado_entrada(estoque, produto, quantidade):
+    if quantidade <= 0:
+        return "Quantidade inválida"
+    estoque[produto] = estoque.get(produto, 0) + quantidade
+    return "Entrada registrada"
 
-    def entrada(self, produto, quantidade):
-        if quantidade <= 0:
-            return "Quantidade inválida"
-        self.estoque[produto] = self.estoque.get(produto, 0) + quantidade
-        return "Entrada registrada"
+def almoxarifado_saida(estoque, produto, quantidade):
+    if quantidade <= 0:
+        return "Quantidade inválida"
+    disponivel = estoque.get(produto, 0)
+    if quantidade > disponivel:
+        return "Quantidade insuficiente em estoque"
+    estoque[produto] = disponivel - quantidade
+    return "Saída registrada"
 
-    def saida(self, produto, quantidade):
-        if quantidade <= 0:
-            return "Quantidade inválida"
-        disponivel = self.estoque.get(produto, 0)
-        if quantidade > disponivel:
-            return "Quantidade insuficiente em estoque"
-        self.estoque[produto] = disponivel - quantidade
-        return "Saída registrada"
+def almoxarifado_saldo(estoque, produto):
+    return estoque.get(produto, 0)
 
-    def saldo(self, produto):
-        return self.estoque.get(produto, 0)
+#9 - Banco
 
+def banco_criar_conta(contas, titular, saldo=0):
+    contas[titular] = saldo
 
-class conta_banco:
-    def __init__(self, titular, saldo=0):
-        self.titular = titular
-        self.saldo = saldo
+def banco(contas, origem, destino, valor):
+    if origem == destino:
+        return "Transferência para a mesma conta não permitida"
+    if valor <= 0:
+        return "Valor inválido para transferência"
+    if contas[origem] < valor:
+        return "Saldo insuficiente"
+    contas[origem] -= valor
+    contas[destino] += valor
+    return "Transferência realizada com sucesso"
 
-    def transferir(self, destino, valor):
-        if destino is self:
-            return "Transferência para a mesma conta não permitida"
-        if valor <= 0:
-            return "Valor inválido para transferência"
-        if valor > self.saldo:
-            return "Saldo insuficiente"
-        self.saldo -= valor
-        destino.saldo += valor
-        return "Transferência realizada com sucesso"
+#10 - Matricula
 
-class matricula:
-    def __init__(self):
-        self.turmas = {}
+def matricula_criar_turma(turmas, turma_id, curso, vagas):
+    turmas[turma_id] = {"curso": curso, "vagas": vagas, "alunos": []}
 
-    def criar_turma(self, turma_id, curso, vagas):
-        self.turmas[turma_id] = {"curso": curso, "vagas": vagas, "alunos": []}
-
-    def matricular(self, aluno, turma_id):
-        if turma_id not in self.turmas:
-            return "Turma não encontrada"
-        turma = self.turmas[turma_id]
-        if aluno in turma["alunos"]:
-            return "Aluno já matriculado nesta turma"
-        if len(turma["alunos"]) >= turma["vagas"]:
-            return "Turma lotada"
-        turma["alunos"].append(aluno)
-        return "Matrícula realizada com sucesso"
+def matricula(turmas, aluno, turma_id):
+    if turma_id not in turmas:
+        return "Turma não encontrada"
+    turma = turmas[turma_id]
+    if aluno in turma["alunos"]:
+        return "Aluno já matriculado nesta turma"
+    if len(turma["alunos"]) >= turma["vagas"]:
+        return "Turma lotada"
+    turma["alunos"].append(aluno)
+    return "Matrícula realizada com sucesso"
